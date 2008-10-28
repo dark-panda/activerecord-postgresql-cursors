@@ -6,26 +6,22 @@ module ActiveRecord
 	class CursorsNotSupported < ActiveRecordError; end
 
 	class Base
-
-		# Override ActiveRecord::Base#find to allow for cursors in PostgreSQL.
-		# To use cursors, set the first argument of find to :cursor. A
-		# PostgreSQLCursor object will be returned, which can then be used to
-		# loop through the results.
-		def self.find *args
-			options = args.extract_options!
-			validate_find_options(options)
-			set_readonly_option!(options)
-	
-			case args.first
-				when :cursor
+		class << self
+			# Override ActiveRecord::Base#find to allow for cursors in
+			# PostgreSQL. To use cursors, set the first argument of
+			# find to :cursor. A PostgreSQLCursor object will be returned,
+			# which can then be used to loop through the results.
+			def find_with_cursors *args
+				if args.first == :cursor
+					options = args.extract_options!
+					validate_find_options(options)
+					set_readonly_option!(options)
 					find_cursor(options)
-				when :first
-					find_initial(options)
-				when :all
-					find_every(options)
 				else
-					find_from_ids(args, options)
+					find_without_cursors(*args)
+				end
 			end
+			alias_method_chain :find, :cursors
 		end
 
 		private
@@ -68,8 +64,8 @@ module ActiveRecord
 				# JoinDependency so we can use some of the methods for our
 				# cursors code.
 				def clear
-					@reflections					 = []
-					@base_records_hash		 = {}
+					@reflections = []
+					@base_records_hash = {}
 					@base_records_in_order = []
 				end
 			end
@@ -99,7 +95,6 @@ module ActiveRecord
 				@query = sql
 				@join_dependency = join_dependency
 				@options = {}
-				@cursor_name = "cursor_#{(rand * 100000).ceil}"
 			end
 
 			# Calls block once for each record in the cursor, passing that
@@ -166,6 +161,10 @@ module ActiveRecord
 			end
 
 			private
+				def new_cursor_name
+					@cursor_name = "cursor_#{(rand * 100000).ceil}"
+				end
+
 				def fetch_forward #:nodoc:
 					@model.find_by_sql(<<-SQL).first
 						FETCH FORWARD FROM #{@cursor_name}
@@ -174,7 +173,7 @@ module ActiveRecord
 			
 				def declare_cursor #:nodoc:
 					@model.connection.execute(<<-SQL)
-						DECLARE #{@cursor_name} CURSOR FOR #{@query}
+						DECLARE #{new_cursor_name} CURSOR FOR #{@query}
 					SQL
 				end
 	
