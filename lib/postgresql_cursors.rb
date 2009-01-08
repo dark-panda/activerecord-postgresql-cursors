@@ -1,4 +1,39 @@
 
+# Add cursor support for PostgreSQL to ActiveRecord.
+#
+# This extension allows you to loop through record sets using cursors in an
+# Enumerable fashion. This allows you to cut down memory usage by only pulling
+# in individual records on each loop rather than pulling everything into
+# memory all at once.
+#
+# To use a cursor, just change the first parameter to an
+# ActiveRecord::Base#find to :cursor instead of :first or :all.
+#
+#	MyModel.find(:cursor, :conditions => 'some_column = true').each do |r|
+#		puts r.inspect
+#	end
+#
+#	MyModel.find(:cursor).collect { |r| r.foo / PI }.avg
+#
+# All ActiveRecord::Base#find options are available and should work as-is.
+# Available enumerable methods are:
+#
+# * each
+# * each_with_index
+# * collect/map
+#
+# When you use a cursor, you're going to get back a PostgreSQLCursor object
+# which provides the actual enumerable methods. At the moment, this is a
+# non-scrollable cursor -- it will only fetch forward. Also note that these
+# cursors are non-updateable/insensitive to updates to the underlying data.
+#
+# The cursor itself is wrapped in a transaction as is required by PostgreSQL
+# and the cursor name is automatically generated using random numbers. On
+# raised SQL exceptions, the transaction is ABORTed and the cursor CLOSEd.
+#
+# Associations are handled, so you can use :include in your find options. Of
+# course, this requires some nonsense when moving the cursor around, but it
+# works all the same.
 module ActiveRecord
 
 	# Exception raised when database cursors aren't supported, which they
@@ -64,9 +99,9 @@ module ActiveRecord
 				# JoinDependency so we can use some of the methods for our
 				# cursors code.
 				def clear
-					@reflections = []
-					@base_records_hash = {}
-					@base_records_in_order = []
+					@reflections            = []
+					@base_records_hash      = {}
+					@base_records_in_order  = []
 				end
 			end
 		end
