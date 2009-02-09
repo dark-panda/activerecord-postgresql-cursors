@@ -1,39 +1,4 @@
 
-# Add cursor support for PostgreSQL to ActiveRecord.
-#
-# This extension allows you to loop through record sets using cursors in an
-# Enumerable fashion. This allows you to cut down memory usage by only pulling
-# in individual records on each loop rather than pulling everything into
-# memory all at once.
-#
-# To use a cursor, just change the first parameter to an
-# ActiveRecord::Base#find to :cursor instead of :first or :all.
-#
-#	MyModel.find(:cursor, :conditions => 'some_column = true').each do |r|
-#		puts r.inspect
-#	end
-#
-#	MyModel.find(:cursor).collect { |r| r.foo / PI }.avg
-#
-# All ActiveRecord::Base#find options are available and should work as-is.
-# Available enumerable methods are:
-#
-# * each
-# * each_with_index
-# * collect/map
-#
-# When you use a cursor, you're going to get back a PostgreSQLCursor object
-# which provides the actual enumerable methods. At the moment, this is a
-# non-scrollable cursor -- it will only fetch forward. Also note that these
-# cursors are non-updateable/insensitive to updates to the underlying data.
-#
-# The cursor itself is wrapped in a transaction as is required by PostgreSQL
-# and the cursor name is automatically generated using random numbers. On
-# raised SQL exceptions, the transaction is ABORTed and the cursor CLOSEd.
-#
-# Associations are handled, so you can use :include in your find options. Of
-# course, this requires some nonsense when moving the cursor around, but it
-# works all the same.
 module ActiveRecord
 
 	# Exception raised when database cursors aren't supported, which they
@@ -43,15 +8,23 @@ module ActiveRecord
 	class Base
 		class << self
 			# Override ActiveRecord::Base#find to allow for cursors in
-			# PostgreSQL. To use cursors, set the first argument of
+			# PostgreSQL. To use a cursor, set the first argument of
 			# find to :cursor. A PostgreSQLCursor object will be returned,
-			# which can then be used to loop through the results.
+			# which can then be used as an Enumerable to loop through the
+			# results.
+			#
+			# By default, cursor names are generated automatically using
+			# "cursor_#{rand}", where rand is a big ol' random number that
+			# is pretty unlikely to clash if you're using nested cursors.
+			# Alternatively, you can supply a specific cursor name by
+			# supplying a :cursor_name option.
 			def find_with_cursors *args
-				if args.first == :cursor
+				if args.first.to_s == 'cursor'
 					options = args.extract_options!
+					cursor_name = options.delete(:cursor_name)
 					validate_find_options(options)
 					set_readonly_option!(options)
-					find_cursor(options)
+					find_cursor(cursor_name, options)
 				else
 					find_without_cursors(*args)
 				end
@@ -63,7 +36,7 @@ module ActiveRecord
 			# Find method for using cursors. This works just like the regular
 			# ActiveRecord::Base#find_every method, except it returns a
 			# PostgreSQLCursor object that can be used to loop through records.
-			def self.find_cursor(options)
+			def self.find_cursor(cursor_name, options)
 				unless connection.is_a? ActiveRecord::ConnectionAdapters::PostgreSQLAdapter
 					raise CursorsNotSupported, "#{connection.class} doesn't support cursors"
 				end
@@ -73,6 +46,7 @@ module ActiveRecord
 						join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(self, merge_includes(scope(:find, :include), options[:include]), options[:joins])
 						return ActiveRecord::ConnectionAdapters::PostgreSQLCursor.new(
 							self,
+							cursor_name,
 							construct_finder_sql_with_included_associations(
 								options,
 								join_dependency
@@ -82,6 +56,7 @@ module ActiveRecord
 					else
 						return ActiveRecord::ConnectionAdapters::PostgreSQLCursor.new(
 							self,
+							cursor_name,
 							construct_finder_sql(
 								options
 							)
@@ -108,8 +83,8 @@ module ActiveRecord
 	end
 
 	module ConnectionAdapters
-		# PostgreSQLCursor is an enumerable class. However, we're only
-		# providing a couple of enumerable methods.
+		# PostgreSQLCursor is an Enumerable class so you can use each, map,
+		# any? and all of those nice Enumerable methods. 
 		#
 		# At the moment, cursors aren't scrollable and are fetch forward-only
 		# and read-only.
@@ -117,6 +92,8 @@ module ActiveRecord
 		# This class isn't really meant to be used outside of the
 		# ActiveRecord::Base#find method.
 		class PostgreSQLCursor
+			include Enumerable
+
 			attr_accessor :cursor_name
 
 			# To create a new PostgreSQLCursor, you'll need the ActiveRecord
@@ -125,9 +102,12 @@ module ActiveRecord
 			# ActiveRecord::Base#find_cursor method) and the JoinDependency
 			# used to create the query if necessary so we can figure out
 			# associations.
-			def initialize model, sql, join_dependency = nil
+			def initialize model, cursor_name, query, join_dependency = nil
 				@model = model
-				@query = sql
+				@cursor_name = if cursor_name
+					@model.connection.quote_table_name(cursor_name.gsub(/"/, '\"'))
+				end
+				@query = query
 				@join_dependency = join_dependency
 				@options = {}
 			end
@@ -170,34 +150,9 @@ module ActiveRecord
 				nil
 			end
 
-			# Returns a new array with the results of running block once for
-			# every record in the cursor.
-			def collect
-				retval = Array.new
-				self.each do |r|
-					if block_given?
-						retval << yield(r)
-					else
-						retval << r
-					end
-				end
-				retval
-			end
-			alias :map :collect
-
-			# Calls block with two arguments, the record and its index, for
-			# each record in the cursor.
-			def each_with_index
-				i = 0
-				self.each do |r|
-					yield r, i
-					i += 1
-				end
-			end
-
 			private
-				def new_cursor_name
-					@cursor_name = "cursor_#{(rand * 100000).ceil}"
+				def cursor_name
+					@cursor_name ||= "cursor_#{(rand * 1000000).ceil}"
 				end
 
 				def fetch_forward #:nodoc:
@@ -208,7 +163,7 @@ module ActiveRecord
 			
 				def declare_cursor #:nodoc:
 					@model.connection.execute(<<-SQL)
-						DECLARE #{new_cursor_name} CURSOR FOR #{@query}
+						DECLARE #{cursor_name} CURSOR FOR #{@query}
 					SQL
 				end
 	
