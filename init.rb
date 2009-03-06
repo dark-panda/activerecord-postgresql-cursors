@@ -1,1 +1,2 @@
-require 'postgresql_cursors'
+
+require File.join(File.dirname(__FILE__), 'lib', 'postgresql_cursors')
