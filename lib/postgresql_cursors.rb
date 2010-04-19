@@ -30,6 +30,10 @@ module ActiveRecord
 				end
 			end
 			alias_method_chain :find, :cursors
+
+			def cursor(*args)
+				find(:cursor, *args)
+			end
 		end
 
 		private
