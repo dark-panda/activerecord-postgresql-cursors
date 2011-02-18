@@ -11,4 +11,5 @@ doc/
 *.orig
 *.patch
 .vimrc_local
+*.log
 
