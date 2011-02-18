@@ -3,6 +3,7 @@
 
 require 'rubygems'
 require 'rake/gempackagetask'
+require 'rake/testtask'
 require 'rake/rdoctask'
 
 $:.push 'lib'
@@ -21,6 +22,12 @@ begin
   Jeweler::GemcutterTasks.new
 rescue LoadError
   puts "Jeweler (or a dependency) not available. Install it with: sudo gem install jeweler"
+end
+
+desc 'Test PostgreSQL extensions'
+Rake::TestTask.new(:test) do |t|
+  t.pattern = 'test/**/*_test.rb'
+  t.verbose = false
 end
 
 desc 'Build docs'
