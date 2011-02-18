@@ -41,15 +41,15 @@ module ActiveRecord
           raise CursorsNotSupported, "#{connection.class} doesn't support cursors"
         end
 
-        if eager_loading?
-          including = (@eager_load_values + @includes_values).uniq
+        relation = apply_finder_options(options)
+        including = (relation.eager_load_values + relation.includes_values).uniq
+
+        if including.present?
           join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, including, nil)
-          join_relation = construct_relation_for_association_find(join_dependency)
+          join_relation = relation.construct_relation_for_association_find(join_dependency)
 
           ActiveRecord::PostgreSQLCursor.new(self, cursor_name, join_relation, join_dependency)
         else
-          relation = apply_finder_options(options)
-
           ActiveRecord::PostgreSQLCursor.new(self, cursor_name, relation)
         end
       end
