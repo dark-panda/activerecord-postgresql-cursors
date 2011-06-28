@@ -2,17 +2,18 @@
 # -*- ruby -*-
 
 require 'rubygems'
-require 'rake/gempackagetask'
+require 'rubygems/package_task'
 require 'rake/testtask'
-require 'rake/rdoctask'
+require 'rdoc/task'
 
 $:.push 'lib'
+
+version = File.read('VERSION') rescue ''
 
 begin
   require 'jeweler'
   Jeweler::Tasks.new do |gem|
     gem.name = "activerecord-postgresql-cursors"
-    gem.version = "0.0.1"
     gem.summary = "Provides some support for PostgreSQL cursors in ActiveRecord."
     gem.description = gem.summary
     gem.email = "code@zoocasa.com"
@@ -32,7 +33,8 @@ end
 
 desc 'Build docs'
 Rake::RDocTask.new do |t|
-  require 'rdoc/rdoc'
+  require 'rdoc'
+  t.title = "ActiveRecord PostgreSQL Cursors #{version}"
   t.main = 'README.rdoc'
   t.rdoc_dir = 'doc'
   t.rdoc_files.include('README.rdoc', 'MIT-LICENSE', 'lib/**/*.rb')
