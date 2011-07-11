@@ -8,23 +8,29 @@ Gem::Specification.new do |s|
   s.version = "0.0.1"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
-  s.authors = ["J Smith"]
-  s.date = %q{2011-02-17}
+  s.authors = [%q{J Smith}]
+  s.date = %q{2011-07-11}
   s.description = %q{Provides some support for PostgreSQL cursors in ActiveRecord.}
   s.email = %q{code@zoocasa.com}
   s.extra_rdoc_files = [
     "README.rdoc"
   ]
   s.files = [
+    "MIT-LICENSE",
     "README.rdoc",
     "Rakefile",
+    "VERSION",
+    "activerecord-postgresql-cursors.gemspec",
     "init.rb",
-    "lib/postgresql_cursors.rb",
-    "rails/init.rb"
+    "lib/activerecord-postgresql-cursors.rb",
+    "lib/postgresql_cursors_2.rb",
+    "lib/postgresql_cursors_3.rb",
+    "test/cursor_test.rb",
+    "test/test_helper.rb"
   ]
   s.homepage = %q{http://github.com/zoocasa/activerecord-postgresql-cursors}
-  s.require_paths = ["lib"]
-  s.rubygems_version = %q{1.5.2}
+  s.require_paths = [%q{lib}]
+  s.rubygems_version = %q{1.8.5}
   s.summary = %q{Provides some support for PostgreSQL cursors in ActiveRecord.}
 
   if s.respond_to? :specification_version then
