@@ -1,4 +1,8 @@
 
+class ActiveRecord::Associations::ClassMethods::JoinDependency
+  include ActiveRecord::PostgreSQLCursors::JoinDependency
+end
+
 module ActiveRecord
   class Base
     class << self

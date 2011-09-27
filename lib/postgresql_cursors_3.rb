@@ -1,4 +1,14 @@
 
+if ActiveRecord::VERSION::STRING >= '3.1'
+  class ActiveRecord::Associations::JoinDependency
+    include ActiveRecord::PostgreSQLCursors::JoinDependency
+  end
+else
+  class ActiveRecord::Associations::ClassMethods::JoinDependency
+    include ActiveRecord::PostgreSQLCursors::JoinDependency
+  end
+end
+
 module ActiveRecord
   module CursorExtensions
     extend ActiveSupport::Concern
@@ -45,7 +55,12 @@ module ActiveRecord
         including = (relation.eager_load_values + relation.includes_values).uniq
 
         if including.present?
-          join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, including, nil)
+          join_dependency = if ActiveRecord::VERSION::STRING >= '3.1'
+            ActiveRecord::Associations::JoinDependency.new(@klass, including, [])
+          else
+            ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, including, nil)
+          end
+
           join_relation = relation.construct_relation_for_association_find(join_dependency)
 
           ActiveRecord::PostgreSQLCursor.new(self, cursor_name, join_relation, join_dependency)

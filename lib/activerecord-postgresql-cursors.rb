@@ -4,17 +4,15 @@ module ActiveRecord
   # absolutely should be in our app.
   class CursorsNotSupported < ActiveRecordError; end
 
-  module Associations
-    module ClassMethods
-      class JoinDependency
-        # Extra method we can use to clear out a couple of things in
-        # JoinDependency so we can use some of the methods for our
-        # cursors code.
-        def clear_with_cursor
-          @reflections            = []
-          @base_records_hash      = {}
-          @base_records_in_order  = []
-        end
+  module PostgreSQLCursors
+    module JoinDependency
+      # Extra method we can use to clear out a couple of things in
+      # JoinDependency so we can use some of the methods for our
+      # cursors code.
+      def clear_with_cursor
+        @reflections            = []
+        @base_records_hash      = {}
+        @base_records_in_order  = []
       end
     end
   end
