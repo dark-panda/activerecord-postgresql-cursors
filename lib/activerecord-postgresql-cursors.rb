@@ -45,33 +45,43 @@ module ActiveRecord
 
     # Calls block once for each record in the cursor, passing that
     # record as a parameter.
-    def each
+    def each(rows_per_slice=nil,&block)
+      call_method(:each, rows_per_slice, &block)
+    end
+
+    def each_slice(rows_per_slice,&block)
+      call_method(:each_slice, rows_per_slice, rows_per_slice, &block)
+    end
+
+    def call_method(method_to_call, rows_per_slice, *args, &block)
       @model.transaction do
         begin
           declare_cursor
           if @join_dependency
             rows = Array.new
             last_id = nil
-            while row = fetch_forward
-              current_id = row[@join_dependency.join_base.aliased_primary_key]
-              last_id ||= current_id
-              if last_id == current_id
-                rows << row
+            until (fetched_rows = fetch_forward(rows_per_slice)).empty?
+              fetched_rows.each do |row|
+                current_id = row[@join_dependency.join_base.aliased_primary_key]
+                last_id ||= current_id
+                if last_id == current_id
+                  rows << row
+                  last_id = current_id
+                else
+                  @join_dependency.instantiate(rows).send(method_to_call,*args, &block)
+                  @join_dependency.clear_with_cursor
+                  rows = [ row ]
+                end
                 last_id = current_id
-              else
-                yield @join_dependency.instantiate(rows).first
-                @join_dependency.clear_with_cursor
-                rows = [ row ]
               end
-              last_id = current_id
             end
 
             if !rows.empty?
-              yield @join_dependency.instantiate(rows).first
+              @join_dependency.instantiate(rows).send(method_to_call,*args, &block)
             end
           else
-            while row = fetch_forward
-              yield row
+            until (fetched_rows = fetch_forward(rows_per_slice)).empty?
+              fetched_rows.send(method_to_call,*args, &block)
             end
           end
         ensure
@@ -86,8 +96,8 @@ module ActiveRecord
         @cursor_name ||= "cursor_#{(rand * 1000000).ceil}"
       end
 
-      def fetch_forward #:nodoc:
-        @model.find_by_sql(%{FETCH FORWARD FROM #{cursor_name}}).first
+      def fetch_forward(rows_per_slice = nil) #:nodoc:
+        @model.find_by_sql(%{FETCH FORWARD #{rows_per_slice} FROM #{cursor_name}})
       end
 
       def declare_cursor #:nodoc:
