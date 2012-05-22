@@ -12,4 +12,4 @@ doc/
 *.patch
 .vimrc_local
 *.log
-
+Gemfile.lock

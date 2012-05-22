@@ -13,6 +13,20 @@ class PostgreSQLCursorTests < Test::Unit::TestCase
     assert_equal(%w{ one two three four five }, cursor.collect(&:name))
   end
 
+  def test_find_cursor_sliced
+    cursor = Foo.find(:cursor, :order => 'id')
+
+    assert(cursor.is_a?(ActiveRecord::PostgreSQLCursor))
+    results = []
+    slice_size = 2
+    cursor.each_slice(slice_size) do |slice|
+      assert(slice.size <= slice_size)
+      slice.each {|e| results << e.name}
+    end
+
+    assert_equal(%w{ one two three four five }, results)
+  end
+
   def test_cursor_scoped
     cursor = Foo.cursor(:order => 'id')
 
@@ -81,6 +95,21 @@ class PostgreSQLCursorTests < Test::Unit::TestCase
       end
     end
 
+    def test_as_relation_sliced
+      cursor = Foo.order('foos.id').where('foos.id >= 3').cursor
+      assert_equal(3, cursor.to_a.length)
+
+      cursor.each_slice(2) do |rows|
+        rows.each do |row|
+          assert(row.is_a?(Foo))
+          assert_equal(2, row.bars.length)
+          row.bars.each do |bar|
+            assert(bar.is_a?(Bar))
+          end
+        end
+      end
+    end
+
     def test_as_relation_with_associations
       cursor = Foo.includes(:bars).order('foos.id').where('foos.id >= 3').cursor
       assert_equal(3, cursor.to_a.length)
@@ -90,6 +119,20 @@ class PostgreSQLCursorTests < Test::Unit::TestCase
         assert_equal(2, row.bars.length)
         row.bars.each do |bar|
           assert(bar.is_a?(Bar))
+        end
+      end
+    end
+    def test_as_relation_with_associations_sliced
+      cursor = Foo.includes(:bars).order('foos.id').where('foos.id >= 3').cursor
+      assert_equal(3, cursor.to_a.length)
+
+      cursor.each_slice(2) do |rows|
+        rows.each do |row|
+          assert(row.is_a?(Foo))
+          assert_equal(2, row.bars.length)
+          row.bars.each do |bar|
+            assert(bar.is_a?(Bar))
+          end
         end
       end
     end
