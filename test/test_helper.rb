@@ -1,9 +1,3 @@
-
-ACTIVERECORD_GEM_VERSION = ENV['ACTIVERECORD_GEM_VERSION'] || '~> 3.0.3'
-
-require 'rubygems'
-gem 'activerecord', ACTIVERECORD_GEM_VERSION
-
 require 'active_support'
 require 'active_support/core_ext/module/aliasing'
 require 'active_record'

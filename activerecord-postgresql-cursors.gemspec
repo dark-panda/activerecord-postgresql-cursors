@@ -41,5 +41,8 @@ Gem::Specification.new do |s|
     end
   else
   end
+  s.add_dependency "activerecord"
+  s.add_dependency "pg"
+  s.add_development_dependency "test-unit"
 end
 
