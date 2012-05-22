@@ -25,7 +25,7 @@ Gem::Specification.new do |s|
     "lib/activerecord-postgresql-cursors.rb",
     "lib/postgresql_cursors_2.rb",
     "lib/postgresql_cursors_3.rb",
-    "test/cursor_test.rb",
+    "test/cursor_tests.rb",
     "test/test_helper.rb"
   ]
   s.homepage = %q{http://github.com/zoocasa/activerecord-postgresql-cursors}
