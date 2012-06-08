@@ -11,5 +11,10 @@ doc/
 *.orig
 *.patch
 .vimrc_local
-*.log
-
+debug.log
+*.gem
+*.rbc
+.bundle
+.config
+.yardoc
+Gemfile.lock
