@@ -28,8 +28,6 @@ module ActiveRecord
   class PostgreSQLCursor
     include Enumerable
 
-    attr_accessor :cursor_name
-
     def initialize(model, cursor_name, query, join_dependency = nil)
       @model = model
       @cursor_name = if cursor_name
