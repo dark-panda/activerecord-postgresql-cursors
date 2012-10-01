@@ -14,13 +14,27 @@ require File.join(File.dirname(__FILE__), *%w{ .. lib activerecord-postgresql-cu
 
 ActiveRecord::Base.logger = Logger.new("debug.log") if ENV['ENABLE_LOGGER']
 ActiveRecord::Base.configurations = {
-  'arunit' => {
-    :adapter => 'postgresql',
-    :database => 'postgresql_cursors_unit_tests',
-    :min_messages => 'warning',
-    :schema_search_path => 'public'
-  }
+  'arunit' => {}
 }
+
+%w{
+  database.yml
+  local_database.yml
+}.each do |file|
+  file = File.join('test', file)
+
+  next unless File.exists?(file)
+
+  configuration = YAML.load(File.read(file))
+
+  if configuration['arunit']
+    ActiveRecord::Base.configurations['arunit'].merge!(configuration['arunit'])
+  end
+
+  if defined?(JRUBY_VERSION) && configuration['jdbc']
+    ActiveRecord::Base.configurations['arunit'].merge!(configuration['jdbc'])
+  end
+end
 
 ActiveRecord::Base.establish_connection 'arunit'
 ARBC = ActiveRecord::Base.connection
