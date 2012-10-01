@@ -12,7 +12,7 @@ require 'turn'
 require 'logger'
 require File.join(File.dirname(__FILE__), *%w{ .. lib activerecord-postgresql-cursors })
 
-ActiveRecord::Base.logger = Logger.new("debug.log")
+ActiveRecord::Base.logger = Logger.new("debug.log") if ENV['ENABLE_LOGGER']
 ActiveRecord::Base.configurations = {
   'arunit' => {
     :adapter => 'postgresql',
