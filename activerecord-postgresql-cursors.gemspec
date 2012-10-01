@@ -20,8 +20,12 @@ Gem::Specification.new do |s|
   s.homepage = "http://github.com/zoocasa/activerecord-postgresql-cursors"
   s.require_paths = ["lib"]
 
-  s.add_dependency("activerecord", ["~> 3.0.14"])
-  s.add_dependency("pg")
+  s.add_dependency("activerecord", [">= 2.3"])
+  if RUBY_PLATFORM == "java"
+    s.add_dependency("activerecord-jdbcpostgresql-adapter")
+  else
+    s.add_dependency("pg")
+  end
   s.add_dependency("rdoc")
   s.add_dependency("rake", ["~> 0.9"])
 end
