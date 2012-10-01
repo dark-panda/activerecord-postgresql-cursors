@@ -2,7 +2,7 @@
 $: << File.dirname(__FILE__)
 require 'test_helper'
 
-class PostgreSQLCursorTests < Test::Unit::TestCase
+class PostgreSQLCursorTests < MiniTest::Unit::TestCase
   include PostgreSQLCursorTestHelper
 
   def test_find_cursor

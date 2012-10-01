@@ -7,7 +7,8 @@ gem 'activerecord', ACTIVERECORD_GEM_VERSION
 require 'active_support'
 require 'active_support/core_ext/module/aliasing'
 require 'active_record'
-require 'test/unit'
+require 'minitest/autorun'
+require 'turn'
 require 'logger'
 require File.join(File.dirname(__FILE__), *%w{ .. lib activerecord-postgresql-cursors })
 
@@ -69,3 +70,12 @@ module PostgreSQLCursorTestHelper
     end
   end
 end
+
+if ENV['autotest']
+  module Turn::Colorize
+    def self.color_supported?
+      true
+    end
+  end
+end
+
