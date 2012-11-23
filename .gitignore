@@ -18,4 +18,6 @@ debug.log
 .config
 .yardoc
 Gemfile.lock
+Gemfile.local
+Guardfile.local
 test/local_database.yml
