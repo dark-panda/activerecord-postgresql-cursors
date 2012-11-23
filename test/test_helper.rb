@@ -7,9 +7,13 @@ gem 'activerecord', ACTIVERECORD_GEM_VERSION
 require 'active_support'
 require 'active_support/core_ext/module/aliasing'
 require 'active_record'
-require 'minitest/autorun'
-require 'minitest/reporters'
 require 'logger'
+require 'minitest/autorun'
+
+if RUBY_VERSION >= '1.9'
+  require 'minitest/reporters'
+end
+
 require File.join(File.dirname(__FILE__), *%w{ .. lib activerecord-postgresql-cursors })
 
 ActiveRecord::Base.logger = Logger.new("debug.log") if ENV['ENABLE_LOGGER']
@@ -85,5 +89,7 @@ module PostgreSQLCursorTestHelper
   end
 end
 
-MiniTest::Reporters.use!(MiniTest::Reporters::SpecReporter.new)
+if RUBY_VERSION >= '1.9'
+  MiniTest::Reporters.use!(MiniTest::Reporters::SpecReporter.new)
+end
 
