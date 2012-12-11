@@ -8,6 +8,7 @@
 *tmp*
 pkg/
 doc/
+coverage/
 *.orig
 *.patch
 .vimrc_local
