@@ -52,6 +52,7 @@ end
 ActiveRecord::Base.establish_connection 'arunit'
 ARBC = ActiveRecord::Base.connection
 
+puts "Ruby version #{RUBY_VERSION}-p#{RUBY_PATCHLEVEL} - #{RbConfig::CONFIG['RUBY_INSTALL_NAME']}"
 puts "Testing against ActiveRecord #{Gem.loaded_specs['activerecord'].version.to_s}"
 if postgresql_version = ARBC.select_rows('SELECT version()').flatten.to_s
   puts "PostgreSQL info from version(): #{postgresql_version}"
