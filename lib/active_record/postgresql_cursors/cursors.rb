@@ -41,7 +41,12 @@ module ActiveRecord
           raise CursorsNotSupported, "#{connection.class} doesn't support cursors"
         end
 
-        relation = apply_finder_options(options)
+        relation = if ActiveRecord::VERSION::MAJOR >= 4
+          apply_finder_options(options, silence_deprecation = true)
+        else
+          apply_finder_options(options)
+        end
+
         including = (relation.eager_load_values + relation.includes_values).uniq
 
         if including.present?
