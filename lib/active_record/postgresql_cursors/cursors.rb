@@ -89,6 +89,10 @@ end
 
 class ActiveRecord::Base
   class << self
-    delegate :cursor, :to => :scoped
+    if ActiveRecord::VERSION::MAJOR >= 4
+      delegate :cursor, :to => :all
+    else
+      delegate :cursor, :to => :scoped
+    end
   end
 end
