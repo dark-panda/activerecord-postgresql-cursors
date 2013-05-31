@@ -1,6 +1,4 @@
 
-ACTIVERECORD_GEM_VERSION = ENV['ACTIVERECORD_GEM_VERSION'] || '~> 3.2.0'
-
 if RUBY_VERSION >= '1.9'
   require 'simplecov'
 
@@ -11,8 +9,6 @@ if RUBY_VERSION >= '1.9'
 end
 
 require 'rubygems'
-gem 'activerecord', ACTIVERECORD_GEM_VERSION
-
 require 'active_support'
 require 'active_support/core_ext/module/aliasing'
 require 'active_record'
