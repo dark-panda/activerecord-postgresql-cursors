@@ -1,14 +1,4 @@
 
-if ActiveRecord::VERSION::STRING >= '3.1'
-  class ActiveRecord::Associations::JoinDependency
-    include ActiveRecord::PostgreSQLCursors::JoinDependency
-  end
-else
-  class ActiveRecord::Associations::ClassMethods::JoinDependency
-    include ActiveRecord::PostgreSQLCursors::JoinDependency
-  end
-end
-
 module ActiveRecord
   module CursorExtensions
     extend ActiveSupport::Concern

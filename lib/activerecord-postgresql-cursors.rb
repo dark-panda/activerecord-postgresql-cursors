@@ -98,6 +98,16 @@ module ActiveRecord
   end
 end
 
+if ActiveRecord::VERSION::STRING >= '3.1'
+  class ActiveRecord::Associations::JoinDependency
+    include ActiveRecord::PostgreSQLCursors::JoinDependency
+  end
+else
+  class ActiveRecord::Associations::ClassMethods::JoinDependency
+    include ActiveRecord::PostgreSQLCursors::JoinDependency
+  end
+end
+
 if ActiveRecord::VERSION::MAJOR >= 3
   require File.join(File.dirname(__FILE__), *%w{ active_record postgresql_cursors cursors })
 else
