@@ -68,7 +68,16 @@ module ActiveRecord
   class PostgreSQLCursor
     def initialize_with_rails(model, cursor_name, relation, join_dependency = nil)
       @relation = relation
-      initialize_without_rails(model, cursor_name, relation.to_sql, join_dependency)
+
+      query = if ActiveRecord::VERSION::MAJOR >= 4
+        model.connection.unprepared_statement do
+          relation.to_sql
+        end
+      else
+        relation.to_sql
+      end
+
+      initialize_without_rails(model, cursor_name, query, join_dependency)
     end
     alias_method_chain :initialize, :rails
   end
