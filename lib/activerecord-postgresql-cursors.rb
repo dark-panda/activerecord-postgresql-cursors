@@ -99,7 +99,7 @@ module ActiveRecord
 end
 
 if ActiveRecord::VERSION::MAJOR >= 3
-  require File.join(File.dirname(__FILE__), *%w{ active_record postgresql_cursors cursors_3 })
+  require File.join(File.dirname(__FILE__), *%w{ active_record postgresql_cursors cursors })
 else
   require File.join(File.dirname(__FILE__), *%w{ active_record postgresql_cursors cursors_2 })
 end

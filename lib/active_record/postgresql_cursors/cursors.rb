@@ -71,11 +71,11 @@ module ActiveRecord
   end
 
   class PostgreSQLCursor
-    def initialize_with_rails_3(model, cursor_name, relation, join_dependency = nil)
+    def initialize_with_rails(model, cursor_name, relation, join_dependency = nil)
       @relation = relation
-      initialize_without_rails_3(model, cursor_name, relation.to_sql, join_dependency)
+      initialize_without_rails(model, cursor_name, relation.to_sql, join_dependency)
     end
-    alias_method_chain :initialize, :rails_3
+    alias_method_chain :initialize, :rails
   end
 end
 
