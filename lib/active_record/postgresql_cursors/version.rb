@@ -1,7 +1,7 @@
 
 module ActiveRecord
   module PostgreSQLCursors
-    VERSION = "0.0.3.dev"
+    VERSION = "0.1.0"
   end
 end
 
