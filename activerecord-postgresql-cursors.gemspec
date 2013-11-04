@@ -11,6 +11,7 @@ Gem::Specification.new do |s|
   s.description = "Provides some support for PostgreSQL cursors in ActiveRecord."
   s.summary = s.description
   s.email = "code@zoocasa.com"
+  s.license = "MIT"
   s.extra_rdoc_files = [
     "README.rdoc"
   ]
