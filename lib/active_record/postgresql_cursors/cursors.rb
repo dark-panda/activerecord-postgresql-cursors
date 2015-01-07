@@ -42,7 +42,7 @@ module ActiveRecord
         end
 
         relation = if ActiveRecord::VERSION::MAJOR >= 4
-          apply_finder_options(options, silence_deprecation = true)
+          clone
         else
           apply_finder_options(options)
         end
@@ -56,7 +56,12 @@ module ActiveRecord
             ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, including, nil)
           end
 
-          join_relation = relation.construct_relation_for_association_find(join_dependency)
+          join_relation = if ActiveRecord::VERSION::STRING <= '4.0'
+            relation.construct_relation_for_association_find(join_dependency)
+          else
+            aliases = join_dependency.aliases
+            apply_join_dependency(select(aliases.columns), join_dependency)
+          end
 
           ActiveRecord::PostgreSQLCursor.new(self, cursor_name, join_relation, join_dependency)
         else
