@@ -1,7 +1,7 @@
 
 module ActiveRecord
   module PostgreSQLCursors
-    VERSION = "0.1.1.dev".freeze
+    VERSION = '1.0.0'.freeze
   end
 end
 
