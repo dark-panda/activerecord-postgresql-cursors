@@ -51,13 +51,23 @@ module ActiveRecord
             rows = Array.new
             last_id = nil
             while row = fetch_forward
-              current_id = row[@join_dependency.join_base.aliased_primary_key]
+              primary_key = if ActiveRecord::VERSION::STRING >= '4.1'
+                @join_dependency.aliases.column_alias(@join_dependency.join_root, @join_dependency.join_root.primary_key)
+              else
+                @join_dependency.join_base.aliased_primary_key
+              end
+              current_id = row[primary_key]
               last_id ||= current_id
               if last_id == current_id
                 rows << row
                 last_id = current_id
               else
-                yield @join_dependency.instantiate(rows).first
+                if ActiveRecord::VERSION::STRING >= '4.1'
+                  yield @join_dependency.instantiate(rows, @join_dependency.aliases).first
+                else
+                  yield @join_dependency.instantiate(rows).first
+                end
+
                 @join_dependency.clear_with_cursor
                 rows = [ row ]
               end
@@ -65,7 +75,11 @@ module ActiveRecord
             end
 
             if !rows.empty?
-              yield @join_dependency.instantiate(rows).first
+              if ActiveRecord::VERSION::STRING >= '4.1'
+                yield @join_dependency.instantiate(rows, @join_dependency.aliases).first
+              else
+                yield @join_dependency.instantiate(rows).first
+              end
             end
           else
             while row = fetch_forward
