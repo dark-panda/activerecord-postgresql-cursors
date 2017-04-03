@@ -41,21 +41,11 @@ module ActiveRecord
           raise CursorsNotSupported, "#{connection.class} doesn't support cursors"
         end
 
-        relation = if ActiveRecord::VERSION::MAJOR >= 4
-          apply_finder_options(options, silence_deprecation = true)
-        else
-          apply_finder_options(options)
-        end
-
+        relation = apply_finder_options(options, silence_deprecation = true)
         including = (relation.eager_load_values + relation.includes_values).uniq
 
         if including.present?
-          join_dependency = if ActiveRecord::VERSION::STRING >= '3.1'
-            ActiveRecord::Associations::JoinDependency.new(@klass, including, [])
-          else
-            ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, including, nil)
-          end
-
+          join_dependency = ActiveRecord::Associations::JoinDependency.new(@klass, including, [])
           join_relation = relation.construct_relation_for_association_find(join_dependency)
 
           ActiveRecord::PostgreSQLCursor.new(self, cursor_name, join_relation, join_dependency)
@@ -69,11 +59,7 @@ module ActiveRecord
     def initialize_with_rails(model, cursor_name, relation, join_dependency = nil)
       @relation = relation
 
-      query = if ActiveRecord::VERSION::MAJOR >= 4
-        model.connection.unprepared_statement do
-          relation.to_sql
-        end
-      else
+      query = model.connection.unprepared_statement do
         relation.to_sql
       end
 
@@ -89,10 +75,6 @@ end
 
 class ActiveRecord::Base
   class << self
-    if ActiveRecord::VERSION::MAJOR >= 4
-      delegate :cursor, :to => :all
-    else
-      delegate :cursor, :to => :scoped
-    end
+    delegate :cursor, :to => :all
   end
 end

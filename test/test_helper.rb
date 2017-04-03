@@ -45,7 +45,7 @@ ActiveRecord::Base.configurations = {
   end
 end
 
-ActiveRecord::Base.establish_connection 'arunit'
+ActiveRecord::Base.establish_connection :arunit
 ARBC = ActiveRecord::Base.connection
 
 puts "Ruby version #{RUBY_VERSION}-p#{RUBY_PATCHLEVEL} - #{RbConfig::CONFIG['RUBY_INSTALL_NAME']}"
