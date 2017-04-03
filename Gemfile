@@ -8,9 +8,9 @@ else
   gem "pg"
 end
 
-gem "rdoc", "~> 3.12"
-gem "rake", "~> 10.0"
-gem "minitest", "~> 4.7"
+gem "rdoc"
+gem "rake"
+gem "minitest"
 gem "minitest-reporters"
 gem "guard-minitest"
 gem "simplecov"
