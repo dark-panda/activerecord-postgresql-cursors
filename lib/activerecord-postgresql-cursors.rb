@@ -4,37 +4,26 @@ module ActiveRecord
   # absolutely should be in our app.
   class CursorsNotSupported < ActiveRecordError; end
 
-  module PostgreSQLCursors
-    module JoinDependency
-      # Extra method we can use to clear out a couple of things in
-      # JoinDependency so we can use some of the methods for our
-      # cursors code.
-      def clear_with_cursor
-        @reflections            = []
-        @base_records_hash      = {}
-        @base_records_in_order  = []
-      end
-    end
-  end
-
   # PostgreSQLCursor is an Enumerable class so you can use each, map,
   # any? and all of those nice Enumerable methods.
   #
   # At the moment, cursors aren't scrollable and are fetch forward-only
   # and read-only.
-  #
-  # This class isn't really meant to be used outside of the
-  # ActiveRecord::Base#find method.
   class PostgreSQLCursor
     include Enumerable
 
-    def initialize(model, cursor_name, query, join_dependency = nil)
+    def initialize(model, cursor_name, relation, join_dependency = nil)
       @model = model
+      @relation = relation
+      @join_dependency = join_dependency
+
       @cursor_name = if cursor_name
         @model.connection.quote_table_name(cursor_name.gsub(/"/, '\"'))
       end
-      @query = query
-      @join_dependency = join_dependency
+
+      @query = model.connection.unprepared_statement do
+        relation.to_sql
+      end
     end
 
     def inspect
@@ -50,26 +39,28 @@ module ActiveRecord
           if @join_dependency
             rows = Array.new
             last_id = nil
+
             while row = fetch_forward
-              current_id = row[@join_dependency.join_base.aliased_primary_key]
+              instantiated_row = @join_dependency.instantiate([row], @join_dependency.aliases).first
+
+              current_id = instantiated_row[@join_dependency.join_root.primary_key]
               last_id ||= current_id
               if last_id == current_id
                 rows << row
                 last_id = current_id
               else
-                yield @join_dependency.instantiate(rows).first
-                @join_dependency.clear_with_cursor
+                yield @join_dependency.instantiate(rows, @join_dependency.aliases).first
                 rows = [ row ]
               end
               last_id = current_id
             end
 
             if !rows.empty?
-              yield @join_dependency.instantiate(rows).first
+              yield @join_dependency.instantiate(rows, @join_dependency.aliases).first
             end
           else
             while row = fetch_forward
-              yield row
+              yield @model.instantiate(row)
             end
           end
         ensure
@@ -80,12 +71,13 @@ module ActiveRecord
     end
 
     private
+
       def cursor_name
-        @cursor_name ||= "cursor_#{(rand * 1000000).ceil}"
+        @cursor_name ||= "cursor_#{(rand * 1_000_000).ceil}"
       end
 
       def fetch_forward #:nodoc:
-        @model.find_by_sql(%{FETCH FORWARD FROM #{cursor_name}}).first
+        @relation.connection.select_all(%{FETCH FORWARD FROM #{cursor_name}}).first
       end
 
       def declare_cursor #:nodoc:
@@ -96,10 +88,6 @@ module ActiveRecord
         @model.connection.execute(%{CLOSE #{cursor_name}})
       end
   end
-end
-
-class ActiveRecord::Associations::JoinDependency
-  include ActiveRecord::PostgreSQLCursors::JoinDependency
 end
 
 require File.join(File.dirname(__FILE__), *%w{ active_record postgresql_cursors cursors })

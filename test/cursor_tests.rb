@@ -5,14 +5,6 @@ require 'test_helper'
 class PostgreSQLCursorTests < MiniTest::Unit::TestCase
   include PostgreSQLCursorTestHelper
 
-  def test_find_cursor
-    cursor = Foo.find(:cursor, :order => 'id')
-
-    assert(cursor.is_a?(ActiveRecord::PostgreSQLCursor))
-
-    assert_equal(%w{ one two three four five }, cursor.collect(&:name))
-  end
-
   def test_cursor_scoped
     cursor = Foo.cursor(:order => 'id')
 
@@ -67,30 +59,28 @@ class PostgreSQLCursorTests < MiniTest::Unit::TestCase
     end
   end
 
-  if ActiveRecord::VERSION::MAJOR >= 3
-    def test_as_relation
-      cursor = Foo.order('foos.id').where('foos.id >= 3').cursor
-      assert_equal(3, cursor.to_a.length)
+  def test_as_relation
+    cursor = Foo.order('foos.id').where('foos.id >= 3').cursor
+    assert_equal(3, cursor.to_a.length)
 
-      cursor.each do |row|
-        assert(row.is_a?(Foo))
-        assert_equal(2, row.bars.length)
-        row.bars.each do |bar|
-          assert(bar.is_a?(Bar))
-        end
+    cursor.each do |row|
+      assert(row.is_a?(Foo))
+      assert_equal(2, row.bars.length)
+      row.bars.each do |bar|
+        assert(bar.is_a?(Bar))
       end
     end
+  end
 
-    def test_as_relation_with_associations
-      cursor = Foo.includes(:bars).order('foos.id').where('foos.id >= 3').cursor
-      assert_equal(3, cursor.to_a.length)
+  def test_as_relation_with_associations
+    cursor = Foo.includes(:bars).order('foos.id').where('foos.id >= 3').cursor
+    assert_equal(3, cursor.to_a.length)
 
-      cursor.each do |row|
-        assert(row.is_a?(Foo))
-        assert_equal(2, row.bars.length)
-        row.bars.each do |bar|
-          assert(bar.is_a?(Bar))
-        end
+    cursor.each do |row|
+      assert(row.is_a?(Foo))
+      assert_equal(2, row.bars.length)
+      row.bars.each do |bar|
+        assert(bar.is_a?(Bar))
       end
     end
   end
