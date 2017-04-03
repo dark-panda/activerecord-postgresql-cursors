@@ -2,11 +2,11 @@
 $: << File.dirname(__FILE__)
 require 'test_helper'
 
-class PostgreSQLCursorTests < MiniTest::Unit::TestCase
+class PostgreSQLCursorTests < Minitest::Test
   include PostgreSQLCursorTestHelper
 
   def test_cursor_scoped
-    cursor = Foo.cursor(:order => 'id')
+    cursor = Foo.cursor(order: 'id')
 
     assert(cursor.is_a?(ActiveRecord::PostgreSQLCursor))
 
@@ -14,7 +14,7 @@ class PostgreSQLCursorTests < MiniTest::Unit::TestCase
   end
 
   def test_cursor_while_updating
-    cursor = Foo.cursor(:order => 'id')
+    cursor = Foo.cursor(order: 'id')
 
     cursor.each do |row|
       row.name = "#{row.name}_updated"
@@ -25,7 +25,7 @@ class PostgreSQLCursorTests < MiniTest::Unit::TestCase
   end
 
   def test_with_associations
-    cursor = Foo.cursor(:order => 'id')
+    cursor = Foo.cursor(order: 'id')
 
     cursor.each do |row|
       assert(row.is_a?(Foo))
@@ -36,7 +36,7 @@ class PostgreSQLCursorTests < MiniTest::Unit::TestCase
   end
 
   def test_with_associations_eager_loading
-    cursor = Foo.cursor(:order => 'foos.id', :include => :bars)
+    cursor = Foo.cursor(order: 'foos.id', include: :bars)
 
     cursor.each do |row|
       assert(row.is_a?(Foo))
@@ -47,7 +47,7 @@ class PostgreSQLCursorTests < MiniTest::Unit::TestCase
   end
 
   def test_nested_cursors
-    cursor = Foo.cursor(:order => 'foos.id')
+    cursor = Foo.cursor(order: 'foos.id')
 
     cursor.each do |row|
       bars_cursor = row.bars.cursor

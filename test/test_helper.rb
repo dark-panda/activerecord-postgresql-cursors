@@ -1,11 +1,9 @@
 
-if RUBY_VERSION >= '1.9'
-  require 'simplecov'
+require 'simplecov'
 
-  SimpleCov.command_name('Unit Tests')
-  SimpleCov.start do
-    add_filter '/test/'
-  end
+SimpleCov.command_name('Unit Tests')
+SimpleCov.start do
+  add_filter '/test/'
 end
 
 require 'rubygems'
@@ -14,14 +12,11 @@ require 'active_support/core_ext/module/aliasing'
 require 'active_record'
 require 'logger'
 require 'minitest/autorun'
-
-if RUBY_VERSION >= '1.9'
-  require 'minitest/reporters'
-end
+require 'minitest/reporters'
 
 require File.join(File.dirname(__FILE__), *%w{ .. lib activerecord-postgresql-cursors })
 
-ActiveRecord::Base.logger = Logger.new("debug.log") if ENV['ENABLE_LOGGER']
+ActiveRecord::Base.logger = Logger.new('debug.log') if ENV['ENABLE_LOGGER']
 ActiveRecord::Base.configurations = {
   'arunit' => {}
 }
@@ -32,9 +27,9 @@ ActiveRecord::Base.configurations = {
 }.each do |file|
   file = File.join('test', file)
 
-  next unless File.exists?(file)
+  next unless File.exist?(file)
 
-  configuration = YAML.load(File.read(file))
+  configuration = YAML.safe_load(File.read(file))
 
   if configuration['arunit']
     ActiveRecord::Base.configurations['arunit'].merge!(configuration['arunit'])
@@ -49,24 +44,26 @@ ActiveRecord::Base.establish_connection :arunit
 ARBC = ActiveRecord::Base.connection
 
 puts "Ruby version #{RUBY_VERSION}-p#{RUBY_PATCHLEVEL} - #{RbConfig::CONFIG['RUBY_INSTALL_NAME']}"
-puts "Testing against ActiveRecord #{Gem.loaded_specs['activerecord'].version.to_s}"
-if postgresql_version = ARBC.select_rows('SELECT version()').flatten.to_s
+puts "Testing against ActiveRecord #{Gem.loaded_specs['activerecord'].version}"
+
+postgresql_version = ARBC.select_rows('SELECT version()').flatten.to_s
+
+if postgresql_version
   puts "PostgreSQL info from version(): #{postgresql_version}"
 end
 
-if !ARBC.table_exists?('foos')
+unless ARBC.data_source_exists?('foos')
   ActiveRecord::Migration.create_table(:foos) do |t|
     t.text :name
   end
 end
 
-if !ARBC.table_exists?('bars')
+unless ARBC.data_source_exists?('bars')
   ActiveRecord::Migration.create_table(:bars) do |t|
     t.text :name
     t.integer :foo_id
   end
 end
-
 
 class Bar < ActiveRecord::Base
   belongs_to :foo
@@ -84,18 +81,15 @@ module PostgreSQLCursorTestHelper
     ARBC.execute(%{select setval('bars_id_seq', 1, false)})
 
     %w{ six seven eight nine ten eleven twelve thirteen fourteen fifteen }.each do |name|
-      Bar.create(:name => name)
+      Bar.create(name: name)
     end
 
     %w{ one two three four five }.each_with_index do |name, i|
-      foo = Foo.new(:name => name)
+      foo = Foo.new(name: name)
       foo.bar_ids = [ i + 1, i + 6 ]
       foo.save
     end
   end
 end
 
-if RUBY_VERSION >= '1.9'
-  MiniTest::Reporters.use!(MiniTest::Reporters::SpecReporter.new)
-end
-
+Minitest::Reporters.use!(MiniTest::Reporters::SpecReporter.new)

@@ -56,6 +56,6 @@ end
 
 class ActiveRecord::Base
   class << self
-    delegate :cursor, :to => :all
+    delegate :cursor, to: :all
   end
 end
