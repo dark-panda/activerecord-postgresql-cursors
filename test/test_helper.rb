@@ -32,7 +32,7 @@ ActiveRecord::Base.configurations = {
   configuration = YAML.safe_load(File.read(file))
 
   if configuration['arunit']
-    ActiveRecord::Base.configurations['arunit'].merge!(configuration['arunit'])
+    ActiveRecord::Base.configurations['arunit'] = configuration['arunit']
   end
 
   if defined?(JRUBY_VERSION) && configuration['jdbc']
