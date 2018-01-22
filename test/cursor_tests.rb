@@ -1,5 +1,4 @@
 
-$: << File.dirname(__FILE__)
 require 'test_helper'
 
 class PostgreSQLCursorTests < Minitest::Test
