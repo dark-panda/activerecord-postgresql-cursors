@@ -5,7 +5,7 @@ gemspec
 if RUBY_PLATFORM == "java"
   gem "activerecord-jdbcpostgresql-adapter"
 else
-  gem "pg"
+  gem "pg", '~> 0.21'
 end
 
 gem "rdoc"
