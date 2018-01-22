@@ -13,10 +13,13 @@ version = ActiveRecord::PostgreSQLCursors::VERSION
 
 desc 'Test PostgreSQL extensions'
 Rake::TestTask.new(:test) do |t|
+  t.libs << "#{File.dirname(__FILE__)}/test"
   t.test_files = FileList['test/**/*_tests.rb']
   t.verbose = !!ENV['VERBOSE_TESTS']
   t.warning = !!ENV['WARNINGS']
 end
+
+task :default => :test
 
 desc 'Build docs'
 Rake::RDocTask.new do |t|
@@ -25,4 +28,3 @@ Rake::RDocTask.new do |t|
   t.rdoc_dir = 'doc'
   t.rdoc_files.include('README.rdoc', 'MIT-LICENSE', 'lib/**/*.rb')
 end
-
