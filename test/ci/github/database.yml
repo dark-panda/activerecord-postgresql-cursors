@@ -1,0 +1,10 @@
+
+arunit:
+  encoding: unicode
+  min_messages: WARNING
+  database: postgresql_cursors_unit_tests
+  adapter: postgresql
+  user: appuser
+  password: password
+  host: localhost
+  port: 5432

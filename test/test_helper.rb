@@ -21,20 +21,10 @@ ActiveRecord::Base.logger = Logger.new('debug.log') if ENV['ENABLE_LOGGER']
 
 configurations = {}
 
-%w{
-  database.yml
-  local_database.yml
-}.each do |file|
-  file = File.join('test', file)
-
-  next unless File.exist?(file)
-
-  configuration = YAML.safe_load_file(file)
-
-  configurations['arunit'] = configuration['arunit'] if configuration['arunit']
-
-  configurations['arunit'].merge!(configuration['jdbc']) if defined?(JRUBY_VERSION) && configuration['jdbc']
-end
+file = File.join('test', 'database.yml')
+configuration = YAML.safe_load_file(file)
+configurations['arunit'] = configuration['arunit'] if configuration['arunit']
+configurations['arunit'].merge!(configuration['jdbc']) if defined?(JRUBY_VERSION) && configuration['jdbc']
 
 ActiveRecord::Base.configurations = configurations
 ActiveRecord::Base.establish_connection :arunit
@@ -88,3 +78,13 @@ module PostgreSQLCursorTestHelper
 end
 
 Minitest::Reporters.use!(Minitest::Reporters::SpecReporter.new)
+
+if ENV['CI']
+  require 'simplecov_json_formatter'
+
+  SimpleCov.formatter = SimpleCov::Formatter::JSONFormatter
+elsif ENV.fetch('COVERAGE', nil) == 'console'
+  require_relative 'support/rspec_console'
+
+  SimpleCov.formatter = SecuricyApp::SimpleCov::Formatter::RSpecConsole
+end
