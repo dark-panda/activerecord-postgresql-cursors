@@ -23,7 +23,7 @@ task default: :test
 desc 'Build docs'
 Rake::RDocTask.new do |t|
   t.title = "ActiveRecord PostgreSQL Cursors #{version}"
-  t.main = 'README.rdoc'
+  t.main = 'README.md'
   t.rdoc_dir = 'doc'
   t.rdoc_files.include('README.rdoc', 'MIT-LICENSE', 'lib/**/*.rb')
 end
