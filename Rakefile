@@ -13,7 +13,7 @@ version = ActiveRecord::PostgreSQLCursors::VERSION
 desc 'Test PostgreSQL extensions'
 Rake::TestTask.new(:test) do |t|
   t.libs << "#{File.dirname(__FILE__)}/test"
-  t.test_files = FileList['test/**/*_tests.rb']
+  t.test_files = FileList['test/**/*_test.rb']
   t.verbose = !!ENV['VERBOSE_TESTS']
   t.warning = !!ENV['WARNINGS']
 end
