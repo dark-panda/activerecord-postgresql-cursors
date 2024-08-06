@@ -36,31 +36,39 @@ module ActiveRecord
       @model.transaction do
         begin
           declare_cursor
+
           if @join_dependency
             rows = Array.new
             last_id = nil
 
-            while row = fetch_forward
-              instantiated_row = @join_dependency.instantiate([row], @join_dependency.aliases).first
+            while !(row = fetch_forward).empty?
+              instantiated_row = @join_dependency.instantiate(row, true).first
 
-              current_id = instantiated_row[@join_dependency.join_root.primary_key]
+              current_id = instantiated_row[@join_dependency.send(:join_root).primary_key]
               last_id ||= current_id
+
               if last_id == current_id
-                rows << row
+                rows << row.first.values
                 last_id = current_id
               else
-                yield @join_dependency.instantiate(rows, @join_dependency.aliases).first
-                rows = [ row ]
+                result_set = ActiveRecord::Result.new(row.columns, rows, row.column_types)
+
+                yield @join_dependency.instantiate(result_set, true).first
+
+                rows = [row.first.values]
               end
+
               last_id = current_id
             end
 
             if !rows.empty?
-              yield @join_dependency.instantiate(rows, @join_dependency.aliases).first
+              result_set = ActiveRecord::Result.new(row.columns, rows, row.column_types)
+
+              yield @join_dependency.instantiate(result_set, true).first
             end
           else
-            while row = fetch_forward
-              yield @model.instantiate(row)
+            while !(row = fetch_forward).empty?
+              yield @model.instantiate(row.first)
             end
           end
         ensure
@@ -77,7 +85,9 @@ module ActiveRecord
       end
 
       def fetch_forward #:nodoc:
-        @relation.connection.select_all(%{FETCH FORWARD FROM #{cursor_name}}).first
+        @relation.uncached do
+          @relation.connection.select_all(%{FETCH FORWARD FROM #{cursor_name}})
+        end
       end
 
       def declare_cursor #:nodoc:

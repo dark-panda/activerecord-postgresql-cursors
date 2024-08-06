@@ -17,9 +17,8 @@ require 'minitest/reporters'
 require File.join(File.dirname(__FILE__), *%w{ .. lib activerecord-postgresql-cursors })
 
 ActiveRecord::Base.logger = Logger.new('debug.log') if ENV['ENABLE_LOGGER']
-ActiveRecord::Base.configurations = {
-  'arunit' => {}
-}
+
+configurations = {}
 
 %w{
   database.yml
@@ -32,14 +31,15 @@ ActiveRecord::Base.configurations = {
   configuration = YAML.safe_load(File.read(file))
 
   if configuration['arunit']
-    ActiveRecord::Base.configurations['arunit'] = configuration['arunit']
+    configurations['arunit'] = configuration['arunit']
   end
 
   if defined?(JRUBY_VERSION) && configuration['jdbc']
-    ActiveRecord::Base.configurations['arunit'].merge!(configuration['jdbc'])
+    configurations['arunit'].merge!(configuration['jdbc'])
   end
 end
 
+ActiveRecord::Base.configurations = configurations
 ActiveRecord::Base.establish_connection :arunit
 ARBC = ActiveRecord::Base.connection
 
@@ -92,4 +92,4 @@ module PostgreSQLCursorTestHelper
   end
 end
 
-Minitest::Reporters.use!(MiniTest::Reporters::SpecReporter.new)
+Minitest::Reporters.use!(Minitest::Reporters::SpecReporter.new)

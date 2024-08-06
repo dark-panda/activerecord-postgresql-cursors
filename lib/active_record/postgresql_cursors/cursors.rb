@@ -36,11 +36,8 @@ module ActiveRecord
         including = (relation.eager_load_values + relation.includes_values).uniq
 
         if including.present?
-          join_dependency = construct_join_dependency(joins_values)
-
-          aliases = join_dependency.aliases
-          join_relation = select(aliases.columns)
-          join_relation = apply_join_dependency(join_relation, join_dependency)
+          join_dependency = construct_join_dependency(joins_values, nil)
+          join_relation = apply_join_dependency
 
           ActiveRecord::PostgreSQLCursor.new(self, cursor_name, join_relation, join_dependency)
         else
