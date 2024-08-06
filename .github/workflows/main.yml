@@ -23,7 +23,7 @@ jobs:
     name: Ruby ${{ matrix.ruby }} tests
     steps:
     - name: Check out app
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         fetch-depth: 0
     - name: Set up Ruby
