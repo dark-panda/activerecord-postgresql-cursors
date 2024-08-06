@@ -52,6 +52,12 @@ jobs:
     - name: Fix coverage report
       if: always()
       run: sed -i "s/\/home\/runner\/work\/activerecord-postgresql-cursors\/activerecord-postgresql-cursors\//\/github\/workspace\//g" coverage/coverage.json || true
+    - uses: actions/upload-artifact@master
+      with:
+        name: "coverage-${{ matrix.ruby }}"
+        path: coverage/coverage.json
+        retention-days: 7
+      if: always()
     - name: Run rubocop
       if: always()
       env:
