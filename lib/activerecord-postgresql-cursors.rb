@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 
 module ActiveRecord
   # Exception raised when database cursors aren't supported, which they
@@ -17,9 +18,7 @@ module ActiveRecord
       @relation = relation
       @join_dependency = join_dependency
 
-      @cursor_name = if cursor_name
-        @model.connection.quote_table_name(cursor_name.gsub(/"/, '\"'))
-      end
+      @cursor_name = (@model.connection.quote_table_name(cursor_name.gsub('"', '\"')) if cursor_name)
 
       @query = model.connection.unprepared_statement do
         relation.to_sql
@@ -34,46 +33,43 @@ module ActiveRecord
     # record as a parameter.
     def each
       @model.transaction do
-        begin
-          declare_cursor
+        declare_cursor
 
-          if @join_dependency
-            rows = Array.new
-            last_id = nil
+        if @join_dependency
+          rows = []
+          last_id = nil
 
-            while !(row = fetch_forward).empty?
-              instantiated_row = @join_dependency.instantiate(row, true).first
+          until (row = fetch_forward).empty?
+            instantiated_row = @join_dependency.instantiate(row, true).first
+            current_id = instantiated_row[@join_dependency.send(:join_root).primary_key]
+            last_id ||= current_id
 
-              current_id = instantiated_row[@join_dependency.send(:join_root).primary_key]
-              last_id ||= current_id
-
-              if last_id == current_id
-                rows << row.first.values
-                last_id = current_id
-              else
-                result_set = ActiveRecord::Result.new(row.columns, rows, row.column_types)
-
-                yield @join_dependency.instantiate(result_set, true).first
-
-                rows = [row.first.values]
-              end
-
+            if last_id == current_id
+              rows << row.first.values
               last_id = current_id
-            end
-
-            if !rows.empty?
+            else
               result_set = ActiveRecord::Result.new(row.columns, rows, row.column_types)
 
               yield @join_dependency.instantiate(result_set, true).first
+
+              rows = [row.first.values]
             end
-          else
-            while !(row = fetch_forward).empty?
-              yield @model.instantiate(row.first)
-            end
+
+            last_id = current_id
           end
-        ensure
-          close_cursor
+
+          unless rows.empty?
+            result_set = ActiveRecord::Result.new(row.columns, rows, row.column_types)
+
+            yield @join_dependency.instantiate(result_set, true).first
+          end
+        else
+          until (row = fetch_forward).empty?
+            yield @model.instantiate(row.first)
+          end
         end
+      ensure
+        close_cursor
       end
       nil
     end
@@ -84,17 +80,17 @@ module ActiveRecord
         @cursor_name ||= "cursor_#{(rand * 1_000_000).ceil}"
       end
 
-      def fetch_forward #:nodoc:
+      def fetch_forward # :nodoc:
         @relation.uncached do
           @relation.connection.select_all(%{FETCH FORWARD FROM #{cursor_name}})
         end
       end
 
-      def declare_cursor #:nodoc:
+      def declare_cursor # :nodoc:
         @model.connection.execute(%{DECLARE #{cursor_name} CURSOR FOR #{@query}})
       end
 
-      def close_cursor #:nodoc:
+      def close_cursor # :nodoc:
         @model.connection.execute(%{CLOSE #{cursor_name}})
       end
   end

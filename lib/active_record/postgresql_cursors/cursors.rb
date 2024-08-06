@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 
 module ActiveRecord
   module CursorExtensions
@@ -28,9 +29,7 @@ module ActiveRecord
       # ActiveRecord::Base#find_every method, except it returns a
       # PostgreSQLCursor object that can be used to loop through records.
       def find_cursor(cursor_name, options)
-        unless connection.is_a? ActiveRecord::ConnectionAdapters::PostgreSQLAdapter
-          raise CursorsNotSupported, "#{connection.class} doesn't support cursors"
-        end
+        raise CursorsNotSupported, "#{connection.class} doesn't support cursors" unless connection.is_a? ActiveRecord::ConnectionAdapters::PostgreSQLAdapter
 
         relation = merge(options.slice(:readonly, :references, :order, :limit, :joins, :group, :having, :offset, :select, :uniq))
         including = (relation.eager_load_values + relation.includes_values).uniq

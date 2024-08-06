@@ -1,5 +1,4 @@
-
-# -*- ruby -*-
+# frozen_string_literal: true
 
 require 'rubygems'
 require 'rubygems/package_task'
@@ -7,7 +6,7 @@ require 'rake/testtask'
 require 'rdoc/task'
 require 'bundler/gem_tasks'
 
-$:.push File.expand_path(File.dirname(__FILE__), 'lib')
+$LOAD_PATH.push File.expand_path(File.dirname(__FILE__), 'lib')
 
 version = ActiveRecord::PostgreSQLCursors::VERSION
 
@@ -19,7 +18,7 @@ Rake::TestTask.new(:test) do |t|
   t.warning = !!ENV['WARNINGS']
 end
 
-task :default => :test
+task default: :test
 
 desc 'Build docs'
 Rake::RDocTask.new do |t|

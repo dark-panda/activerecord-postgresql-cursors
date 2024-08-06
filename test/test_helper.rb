@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 
 require 'simplecov'
 
@@ -28,15 +29,11 @@ configurations = {}
 
   next unless File.exist?(file)
 
-  configuration = YAML.safe_load(File.read(file))
+  configuration = YAML.safe_load_file(file)
 
-  if configuration['arunit']
-    configurations['arunit'] = configuration['arunit']
-  end
+  configurations['arunit'] = configuration['arunit'] if configuration['arunit']
 
-  if defined?(JRUBY_VERSION) && configuration['jdbc']
-    configurations['arunit'].merge!(configuration['jdbc'])
-  end
+  configurations['arunit'].merge!(configuration['jdbc']) if defined?(JRUBY_VERSION) && configuration['jdbc']
 end
 
 ActiveRecord::Base.configurations = configurations
@@ -48,9 +45,7 @@ puts "Testing against ActiveRecord #{Gem.loaded_specs['activerecord'].version}"
 
 postgresql_version = ARBC.select_rows('SELECT version()').flatten.to_s
 
-if postgresql_version
-  puts "PostgreSQL info from version(): #{postgresql_version}"
-end
+puts "PostgreSQL info from version(): #{postgresql_version}" if postgresql_version
 
 unless ARBC.data_source_exists?('foos')
   ActiveRecord::Migration.create_table(:foos) do |t|
@@ -86,7 +81,7 @@ module PostgreSQLCursorTestHelper
 
     %w{ one two three four five }.each_with_index do |name, i|
       foo = Foo.new(name: name)
-      foo.bar_ids = [ i + 1, i + 6 ]
+      foo.bar_ids = [i + 1, i + 6]
       foo.save
     end
   end
