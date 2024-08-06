@@ -21,6 +21,6 @@ Gem::Specification.new do |s|
   s.homepage = 'http://github.com/dark-panda/activerecord-postgresql-cursors'
   s.require_paths = ['lib']
 
-  s.add_dependency('activerecord', ['>= 2.3'])
+  s.add_dependency('activerecord', ['>= 6.1'])
   s.metadata['rubygems_mfa_required'] = 'true'
 end
