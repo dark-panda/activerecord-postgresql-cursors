@@ -1,21 +1,18 @@
+# frozen_string_literal: true
+
 source 'https://rubygems.org'
 
 gemspec
 
-if RUBY_PLATFORM == "java"
-  gem "activerecord-jdbcpostgresql-adapter"
-else
-  gem "pg"
-end
+gem 'guard'
+gem 'guard-minitest'
+gem 'minitest'
+gem 'minitest-reporters'
+gem 'pg'
+gem 'rake'
+gem 'rubocop', require: false
+gem 'rubocop-minitest', require: false
+gem 'simplecov', require: false
+gem 'simplecov_json_formatter', require: false
 
-gem "rdoc"
-gem "rake"
-gem "minitest"
-gem "minitest-reporters"
-gem "guard-minitest"
-gem "simplecov"
-
-if File.exists?('Gemfile.local')
-  instance_eval File.read('Gemfile.local')
-end
-
+instance_eval File.read('Gemfile.local') if File.exist?('Gemfile.local')

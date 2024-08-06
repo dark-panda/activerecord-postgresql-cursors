@@ -1,4 +1,4 @@
-= ActiveRecord PostgreSQL Cursors
+# ActiveRecord PostgreSQL Cursors
 
 This extension allows you to loop through record sets using cursors in an
 Enumerable fashion. This allows you to cut down memory usage by only pulling
@@ -9,21 +9,23 @@ To use a cursor, just change the first parameter to an
 ActiveRecord::Base.find to :cursor instead of :first or :all or
 whatever or use the ActiveRecord::Base.cursor method directly.
 
-  MyModel.find(:cursor, :conditions => 'some_column = true').each do |r|
-    puts r.inspect
-  end
+```ruby
+MyModel.find(:cursor, :conditions => 'some_column = true').each do |r|
+  puts r.inspect
+end
 
-  MyModel.find(:cursor).collect { |r| r.foo / PI }.avg
+MyModel.find(:cursor).collect { |r| r.foo / PI }.avg
 
-  MyModel.cursor.each do |r|
-    puts r.inspect
-  end
+MyModel.cursor.each do |r|
+  puts r.inspect
+end
+```
 
 All ActiveRecord::Base.find options are available and should work as-is.
 As a bonus, the PostgreSQLCursor object returned includes Enumerable,
 so you can iterate to your heart's content.
 
-This extension should work with Rails 4.2+. For older versions of Rails, try
+This extension should work with Rails 6.1+. For older versions of Rails, try
 out older versions of the gem.
 
 At the moment, this is a non-scrollable cursor -- it will only fetch
@@ -51,7 +53,7 @@ created and the time it is executed. In these cases, it may be wise to wrap
 your use or cursors in your own transaction to ensure that changes made to
 the underlying data don't interfere with your cursor's visibility.
 
-== License
+## License
 
 This gem is licensed under an MIT-style license. See the +MIT-LICENSE+ file for
 details.
