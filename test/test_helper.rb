@@ -83,8 +83,4 @@ if ENV['CI']
   require 'simplecov_json_formatter'
 
   SimpleCov.formatter = SimpleCov::Formatter::JSONFormatter
-elsif ENV.fetch('COVERAGE', nil) == 'console'
-  require_relative 'support/rspec_console'
-
-  SimpleCov.formatter = SecuricyApp::SimpleCov::Formatter::RSpecConsole
 end
